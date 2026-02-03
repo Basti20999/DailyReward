@@ -1,0 +1,81 @@
+# Money reward range
+money:
+  min: 10000
+  max: 50000
+
+# Keys reward
+keys:
+  type: rare
+  amount: 1
+
+# Gems reward
+gems: 250
+
+# Commands (with placeholders {player}, {amount}, {type})
+commands:
+  money_give: "money give {player} {amount}"
+  keys_give: "crates key give {player} {type} {amount}"
+  gems_give: "gems give {player} {amount}"
+
+# GUI settings
+gui:
+  title: "&8ᴛäɢʟɪᴄʜᴇ ʙᴇʟᴏʜɴᴜɴɢ"
+  size: 27
+  reward_slot: 13
+  reward_material: CHEST_MINECART
+  reward_name_ready: "#00FF00&lBELOHNUNG ABHOLEN?"
+  reward_name_cooldown: "#FF0000&lBELOHNUNG ABHOLEN?"
+  reward_lore:
+    - "&f"
+    - "#0000FF● &fBelohnung:"
+    - "&f"
+    - "&f- #00FF00$10K – $50K &7(Zufall)"
+    - "&f- 1x #00FF00&lRARE KEY"
+    - "&f- #FF00FF250 Gems"
+    - "&f"
+  border_material: BLACK_STAINED_GLASS_PANE
+  border_name: "&f"
+  border_slots:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 18
+    - 19
+    - 20
+    - 21
+    - 22
+    - 23
+    - 24
+    - 25
+    - 26
+
+# Cooldown in hours
+cooldown_hours: 12
+
+# Messages
+messages:
+  general:
+    only_players: "#FF0000Dieser Befehl kann nur von Spielern ausgeführt werden!"
+  success: "#0000FF&lNITROSMP &7» &fTägliche Belohnung eingelöst."
+  on_cooldown: "#0000FF&lNITROSMP &7» #FF0000Du hast deine tägliche Belohnung bereits abgeholt!"
+
+# Sounds
+sounds:
+  open:
+    sound: ENTITY_CHICKEN_EGG
+    volume: 1.0
+    pitch: 2.0
+  success:
+    sound: ENTITY_PLAYER_LEVELUP
+    volume: 1.0
+    pitch: 2.0
+  error:
+    sound: ENTITY_VILLAGER_NO
+    volume: 1.0
+    pitch: 1.0

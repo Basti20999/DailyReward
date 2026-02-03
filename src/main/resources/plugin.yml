@@ -1,0 +1,9 @@
+name: DailyReward
+main: com.basti20999.dailyReward.DailyReward
+version: 1.0
+api-version: 1.21
+author: Basti20999
+commands:
+  daily:
+    description: Öffnet die tägliche Belohnung
+    aliases: [belohnung]
