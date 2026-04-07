@@ -12,8 +12,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class RewardCommand implements CommandExecutor {
 
@@ -23,29 +21,13 @@ public class RewardCommand implements CommandExecutor {
         this.plugin = plugin;
     }
 
-    private String translateHexColorCodes(String message) {
-        // Ersetze #RRGGBB durch das Minecraft Hex-Format §x§R§R§G§G§B§B
-        Pattern hexPattern = Pattern.compile("#([A-Fa-f0-9]{6})");
-        Matcher matcher = hexPattern.matcher(message);
-        StringBuffer buffer = new StringBuffer();
-        while (matcher.find()) {
-            String color = matcher.group(1);
-            char[] chars = color.toCharArray();
-            String replacement = "§x§" + chars[0] + "§" + chars[1] + "§" + chars[2] + "§" + chars[3] + "§" + chars[4] + "§" + chars[5];
-            matcher.appendReplacement(buffer, replacement);
-        }
-        matcher.appendTail(buffer);
-        // Nun die standard & Codes parsen
-        return org.bukkit.ChatColor.translateAlternateColorCodes('&', buffer.toString());
-    }
-
-    private ItemStack createItem(Material mat, String name, List<String> lore) {
-        ItemStack item = new ItemStack(mat);
+    private ItemStack createItem(Material material, String name, List<String> lore) {
+        ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(translateHexColorCodes(name));
+            meta.setDisplayName(ColorUtil.translate(name));
             if (lore != null) {
-                lore.replaceAll(this::translateHexColorCodes);
+                lore.replaceAll(ColorUtil::translate);
                 meta.setLore(lore);
             }
             item.setItemMeta(meta);
@@ -56,38 +38,65 @@ public class RewardCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player p)) {
-            sender.sendMessage(translateHexColorCodes(plugin.getConfig().getString("messages.general.only_players")));
+            sender.sendMessage(ColorUtil.translate(plugin.getConfig().getString(
+                    "messages.general.only_players", "&cOnly players can use this command.")));
             return true;
         }
 
-        String title = translateHexColorCodes(plugin.getConfig().getString("gui.title"));
+        String title = ColorUtil.translate(plugin.getConfig().getString("gui.title", "&8Daily Reward"));
         int invSize = plugin.getConfig().getInt("gui.size", 27);
         Inventory inv = Bukkit.createInventory(null, invSize, title);
 
         long now = System.currentTimeMillis();
         Long last = plugin.getRewardTimes().get(p.getUniqueId());
-        int cooldown = plugin.getConfig().getInt("cooldown_hours", 12);
+        long cooldownMillis = plugin.getConfig().getLong("cooldown_hours", 24) * 60L * 60L * 1000L;
+        boolean ready = last == null || now - last >= cooldownMillis;
 
+        String rewardName = ready
+                ? plugin.getConfig().getString("gui.reward_name_ready", "&aCollect reward!")
+                : plugin.getConfig().getString("gui.reward_name_cooldown", "&cAlready collected!");
         List<String> lore = plugin.getConfig().getStringList("gui.reward_lore");
-        String rewardName = (last == null || now - last >= cooldown * 60 * 60 * 1000L)
-                ? translateHexColorCodes(plugin.getConfig().getString("gui.reward_name_ready"))
-                : translateHexColorCodes(plugin.getConfig().getString("gui.reward_name_cooldown"));
 
-        Material rewardMaterial = Material.valueOf(plugin.getConfig().getString("gui.reward_material", "CHEST_MINECART"));
+        Material rewardMaterial = parseMaterial(
+                plugin.getConfig().getString("gui.reward_material"), Material.CHEST);
         ItemStack rewardItem = createItem(rewardMaterial, rewardName, lore);
         int rewardSlot = plugin.getConfig().getInt("gui.reward_slot", 13);
         inv.setItem(rewardSlot, rewardItem);
 
-        Material borderMaterial = Material.valueOf(plugin.getConfig().getString("gui.border_material", "BLACK_STAINED_GLASS_PANE"));
-        String borderName = translateHexColorCodes(plugin.getConfig().getString("gui.border_name", "§f"));
+        Material borderMaterial = parseMaterial(
+                plugin.getConfig().getString("gui.border_material"), Material.BLACK_STAINED_GLASS_PANE);
+        String borderName = plugin.getConfig().getString("gui.border_name", " ");
         ItemStack borderItem = createItem(borderMaterial, borderName, null);
-        List<Integer> borderSlots = plugin.getConfig().getIntegerList("gui.border_slots");
-        for (int slot : borderSlots) {
+        for (int slot : plugin.getConfig().getIntegerList("gui.border_slots")) {
             inv.setItem(slot, borderItem);
         }
 
         p.openInventory(inv);
-        p.playSound(p.getLocation(), Sound.valueOf(plugin.getConfig().getString("sounds.open.sound")), (float) plugin.getConfig().getDouble("sounds.open.volume"), (float) plugin.getConfig().getDouble("sounds.open.pitch"));
+
+        String soundName = plugin.getConfig().getString("sounds.open.sound", "BLOCK_NOTE_BLOCK_PLING");
+        float volume = (float) plugin.getConfig().getDouble("sounds.open.volume", 1.0);
+        float pitch = (float) plugin.getConfig().getDouble("sounds.open.pitch", 1.0);
+        playSound(p, soundName, volume, pitch);
+
         return true;
+    }
+
+    private Material parseMaterial(String name, Material fallback) {
+        if (name == null) return fallback;
+        try {
+            return Material.valueOf(name.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Unknown material '" + name + "', using fallback: " + fallback.name());
+            return fallback;
+        }
+    }
+
+    private void playSound(Player player, String soundName, float volume, float pitch) {
+        try {
+            Sound sound = Sound.valueOf(soundName.toUpperCase());
+            player.playSound(player.getLocation(), sound, volume, pitch);
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Unknown sound '" + soundName + "', skipping.");
+        }
     }
 }

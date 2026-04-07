@@ -7,9 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class RewardListener implements Listener {
 
@@ -19,57 +17,70 @@ public class RewardListener implements Listener {
         this.plugin = plugin;
     }
 
-    private String translateHexColorCodes(String message) {
-        // Ersetze #RRGGBB durch das Minecraft Hex-Format §x§R§R§G§G§B§B
-        Pattern hexPattern = Pattern.compile("#([A-Fa-f0-9]{6})");
-        Matcher matcher = hexPattern.matcher(message);
-        StringBuffer buffer = new StringBuffer();
-        while (matcher.find()) {
-            String color = matcher.group(1);
-            char[] chars = color.toCharArray();
-            String replacement = "§x§" + chars[0] + "§" + chars[1] + "§" + chars[2] + "§" + chars[3] + "§" + chars[4] + "§" + chars[5];
-            matcher.appendReplacement(buffer, replacement);
-        }
-        matcher.appendTail(buffer);
-        // Nun die standard & Codes parsen
-        return org.bukkit.ChatColor.translateAlternateColorCodes('&', buffer.toString());
-    }
-
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (e.getView().getTitle().equals(translateHexColorCodes(plugin.getConfig().getString("gui.title")))) {
-            e.setCancelled(true);
+        String guiTitle = ColorUtil.translate(plugin.getConfig().getString("gui.title", "&8Daily Reward"));
+        if (!e.getView().getTitle().equals(guiTitle)) return;
 
-            int rewardSlot = plugin.getConfig().getInt("gui.reward_slot", 13);
-            if (e.getSlot() == rewardSlot && e.getWhoClicked() instanceof Player p) {
-                long now = System.currentTimeMillis();
-                Long last = plugin.getRewardTimes().get(p.getUniqueId());
-                int cooldown = plugin.getConfig().getInt("cooldown_hours", 12);
+        e.setCancelled(true);
 
-                if (last == null || now - last >= cooldown * 60 * 60 * 1000L) {
-                    int min = plugin.getConfig().getInt("money.min", 10000);
-                    int max = plugin.getConfig().getInt("money.max", 50000);
-                    int money = new Random().nextInt(max - min + 1) + min;
+        int rewardSlot = plugin.getConfig().getInt("gui.reward_slot", 13);
+        if (e.getSlot() != rewardSlot || !(e.getWhoClicked() instanceof Player p)) return;
 
-                    String keyType = plugin.getConfig().getString("keys.type", "rare");
-                    int keyAmount = plugin.getConfig().getInt("keys.amount", 1);
-                    int gems = plugin.getConfig().getInt("gems", 250);
+        long now = System.currentTimeMillis();
+        Long last = plugin.getRewardTimes().get(p.getUniqueId());
+        long cooldownMillis = plugin.getConfig().getLong("cooldown_hours", 24) * 60L * 60L * 1000L;
 
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), plugin.getConfig().getString("commands.money_give").replace("{player}", p.getName()).replace("{amount}", String.valueOf(money)));
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), plugin.getConfig().getString("commands.keys_give").replace("{player}", p.getName()).replace("{type}", keyType).replace("{amount}", String.valueOf(keyAmount)));
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), plugin.getConfig().getString("commands.gems_give").replace("{player}", p.getName()).replace("{amount}", String.valueOf(gems)));
+        if (last != null && now - last < cooldownMillis) {
+            p.sendMessage(ColorUtil.translate(plugin.getConfig().getString(
+                    "messages.on_cooldown", "&cYou have already claimed your daily reward!")));
+            playSound(p, plugin.getConfig().getString("sounds.error.sound", "ENTITY_VILLAGER_NO"),
+                    (float) plugin.getConfig().getDouble("sounds.error.volume", 1.0),
+                    (float) plugin.getConfig().getDouble("sounds.error.pitch", 1.0));
+            p.closeInventory();
+            return;
+        }
 
-                    p.sendMessage(translateHexColorCodes(plugin.getConfig().getString("messages.success")));
-                    p.playSound(p.getLocation(), Sound.valueOf(plugin.getConfig().getString("sounds.success.sound")), (float) plugin.getConfig().getDouble("sounds.success.volume"), (float) plugin.getConfig().getDouble("sounds.success.pitch"));
+        int min = plugin.getConfig().getInt("money.min", 100);
+        int max = plugin.getConfig().getInt("money.max", 1000);
+        int money = ThreadLocalRandom.current().nextInt(min, max + 1);
 
-                    plugin.getRewardTimes().put(p.getUniqueId(), now);
-                    p.closeInventory();
-                } else {
-                    p.sendMessage(translateHexColorCodes(plugin.getConfig().getString("messages.on_cooldown")));
-                    p.playSound(p.getLocation(), Sound.valueOf(plugin.getConfig().getString("sounds.error.sound")), (float) plugin.getConfig().getDouble("sounds.error.volume"), (float) plugin.getConfig().getDouble("sounds.error.pitch"));
-                    p.closeInventory();
-                }
-            }
+        String keyType = plugin.getConfig().getString("keys.type", "rare");
+        int keyAmount = plugin.getConfig().getInt("keys.amount", 1);
+        int gems = plugin.getConfig().getInt("gems", 250);
+
+        dispatchCommand(plugin.getConfig().getString("commands.money_give", ""),
+                p.getName(), String.valueOf(money), keyType);
+        dispatchCommand(plugin.getConfig().getString("commands.keys_give", ""),
+                p.getName(), String.valueOf(keyAmount), keyType);
+        dispatchCommand(plugin.getConfig().getString("commands.gems_give", ""),
+                p.getName(), String.valueOf(gems), keyType);
+
+        plugin.getRewardTimes().put(p.getUniqueId(), now);
+
+        p.sendMessage(ColorUtil.translate(plugin.getConfig().getString(
+                "messages.success", "&aDaily reward claimed!")));
+        playSound(p, plugin.getConfig().getString("sounds.success.sound", "ENTITY_PLAYER_LEVELUP"),
+                (float) plugin.getConfig().getDouble("sounds.success.volume", 1.0),
+                (float) plugin.getConfig().getDouble("sounds.success.pitch", 1.0));
+        p.closeInventory();
+    }
+
+    private void dispatchCommand(String template, String player, String amount, String type) {
+        if (template == null || template.isBlank()) return;
+        String cmd = template
+                .replace("{player}", player)
+                .replace("{amount}", amount)
+                .replace("{type}", type);
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+    }
+
+    private void playSound(Player player, String soundName, float volume, float pitch) {
+        try {
+            Sound sound = Sound.valueOf(soundName.toUpperCase());
+            player.playSound(player.getLocation(), sound, volume, pitch);
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Unknown sound '" + soundName + "', skipping.");
         }
     }
 }

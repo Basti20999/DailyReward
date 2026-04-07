@@ -1,40 +1,64 @@
-# Money reward range
-money:
-  min: 10000
-  max: 50000
+# =============================================
+#   DailyReward Configuration
+#   Supports: hex colors (#RRGGBB) and legacy color codes (&a, &b, ...)
+# =============================================
 
-# Keys reward
+# Cooldown in hours before a player can claim again
+cooldown_hours: 24
+
+# ---- Reward values ----
+
+# Money reward (random value between min and max)
+money:
+  min: 100
+  max: 1000
+
+# Key reward
 keys:
   type: rare
   amount: 1
 
-# Gems reward
+# Gem reward
 gems: 250
 
-# Commands (with placeholders {player}, {amount}, {type})
+# ---- Commands ----
+# These commands are dispatched from the console when a player claims their reward.
+# Placeholders: {player}, {amount}, {type}
+# Leave a command blank ("") to skip it.
+# Adjust these to match the economy/key/gem plugins on your server.
 commands:
-  money_give: "money give {player} {amount}"
+  money_give: "eco give {player} {amount}"
   keys_give: "crates key give {player} {type} {amount}"
   gems_give: "gems give {player} {amount}"
 
-# GUI settings
+# ---- GUI settings ----
 gui:
-  title: "&8ᴛäɢʟɪᴄʜᴇ ʙᴇʟᴏʜɴᴜɴɢ"
-  size: 27
-  reward_slot: 13
-  reward_material: CHEST_MINECART
-  reward_name_ready: "#00FF00&lBELOHNUNG ABHOLEN?"
-  reward_name_cooldown: "#FF0000&lBELOHNUNG ABHOLEN?"
+  title: "&8Daily Reward"
+  size: 27         # Must be a multiple of 9 (9, 18, 27, 36, 45, 54)
+  reward_slot: 13  # Slot index for the clickable reward item (0-based)
+
+  # Material shown in the reward slot
+  reward_material: CHEST
+
+  # Item name when the reward is available
+  reward_name_ready: "#00FF00&lCLAIM REWARD!"
+
+  # Item name when the reward is on cooldown
+  reward_name_cooldown: "#FF0000&lALREADY CLAIMED"
+
+  # Lore lines shown on the reward item
   reward_lore:
     - "&f"
-    - "#0000FF● &fBelohnung:"
+    - "#5555FF● &fRewards:"
     - "&f"
-    - "&f- #00FF00$10K – $50K &7(Zufall)"
+    - "&f- #00FF00$100 – $1,000 &7(random)"
     - "&f- 1x #00FF00&lRARE KEY"
-    - "&f- #FF00FF250 Gems"
+    - "&f- #FF55FF250 Gems"
     - "&f"
+
+  # Border decoration
   border_material: BLACK_STAINED_GLASS_PANE
-  border_name: "&f"
+  border_name: " "
   border_slots:
     - 0
     - 1
@@ -55,26 +79,23 @@ gui:
     - 25
     - 26
 
-# Cooldown in hours
-cooldown_hours: 12
-
-# Messages
+# ---- Messages ----
 messages:
   general:
-    only_players: "#FF0000Dieser Befehl kann nur von Spielern ausgeführt werden!"
-  success: "#0000FF&lNITROSMP &7» &fTägliche Belohnung eingelöst."
-  on_cooldown: "#0000FF&lNITROSMP &7» #FF0000Du hast deine tägliche Belohnung bereits abgeholt!"
+    only_players: "&cOnly players can use this command."
+  success: "&aDailyReward &7» &fYou claimed your daily reward!"
+  on_cooldown: "&cDailyReward &7» &fYou have already claimed your daily reward today!"
 
-# Sounds
+# ---- Sounds ----
 sounds:
   open:
-    sound: ENTITY_CHICKEN_EGG
+    sound: BLOCK_NOTE_BLOCK_PLING
     volume: 1.0
-    pitch: 2.0
+    pitch: 1.5
   success:
     sound: ENTITY_PLAYER_LEVELUP
     volume: 1.0
-    pitch: 2.0
+    pitch: 1.0
   error:
     sound: ENTITY_VILLAGER_NO
     volume: 1.0
