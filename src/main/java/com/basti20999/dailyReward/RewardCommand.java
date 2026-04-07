@@ -2,6 +2,8 @@ package com.basti20999.dailyReward;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -92,11 +94,11 @@ public class RewardCommand implements CommandExecutor {
     }
 
     private void playSound(Player player, String soundName, float volume, float pitch) {
-        try {
-            Sound sound = Sound.valueOf(soundName.toUpperCase());
-            player.playSound(player.getLocation(), sound, volume, pitch);
-        } catch (IllegalArgumentException e) {
+        Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+        if (sound == null) {
             plugin.getLogger().warning("Unknown sound '" + soundName + "', skipping.");
+            return;
         }
+        player.playSound(player.getLocation(), sound, volume, pitch);
     }
 }

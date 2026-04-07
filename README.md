@@ -118,20 +118,20 @@ gui:
 
 ### Sounds
 
-Use any valid Bukkit `Sound` enum name (e.g. `ENTITY_PLAYER_LEVELUP`).
+Use Minecraft sound IDs (lowercase, dot-separated). Full list: https://minecraft.wiki/w/Sounds.json
 
 ```yaml
 sounds:
   open:
-    sound: BLOCK_NOTE_BLOCK_PLING
+    sound: block.note_block.pling
     volume: 1.0
     pitch: 1.5
   success:
-    sound: ENTITY_PLAYER_LEVELUP
+    sound: entity.player.levelup
     volume: 1.0
     pitch: 1.0
   error:
-    sound: ENTITY_VILLAGER_NO
+    sound: entity.villager.no
     volume: 1.0
     pitch: 1.0
 ```

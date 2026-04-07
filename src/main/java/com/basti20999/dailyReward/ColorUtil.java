@@ -21,6 +21,7 @@ public final class ColorUtil {
      * @param message the raw message string
      * @return the colorized string
      */
+    @SuppressWarnings("deprecation")
     public static String translate(String message) {
         if (message == null) return "";
         Matcher matcher = HEX_PATTERN.matcher(message);

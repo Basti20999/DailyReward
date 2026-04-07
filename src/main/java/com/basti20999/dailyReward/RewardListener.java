@@ -1,6 +1,8 @@
 package com.basti20999.dailyReward;
 
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -60,8 +62,8 @@ public class RewardListener implements Listener {
         plugin.getRewardTimes().put(p.getUniqueId(), now);
         try {
             plugin.getDatabase().save(p.getUniqueId(), now);
-        } catch (SQLException e) {
-            plugin.getLogger().warning("Failed to save reward for " + p.getName() + ": " + e.getMessage());
+        } catch (SQLException ex) {
+            plugin.getLogger().warning("Failed to save reward for " + p.getName() + ": " + ex.getMessage());
         }
 
         p.sendMessage(ColorUtil.translate(plugin.getConfig().getString(
@@ -82,11 +84,11 @@ public class RewardListener implements Listener {
     }
 
     private void playSound(Player player, String soundName, float volume, float pitch) {
-        try {
-            Sound sound = Sound.valueOf(soundName.toUpperCase());
-            player.playSound(player.getLocation(), sound, volume, pitch);
-        } catch (IllegalArgumentException e) {
+        Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+        if (sound == null) {
             plugin.getLogger().warning("Unknown sound '" + soundName + "', skipping.");
+            return;
         }
+        player.playSound(player.getLocation(), sound, volume, pitch);
     }
 }
