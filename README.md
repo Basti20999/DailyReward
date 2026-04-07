@@ -6,6 +6,7 @@ A lightweight Spigot/Paper Minecraft plugin that gives players a configurable da
 
 - Clickable GUI inventory for claiming rewards
 - Configurable cooldown (default: 24 hours)
+- Persistent storage via **SQLite** (default, zero setup) or **MySQL**
 - Supports hex color codes (`#RRGGBB`) and legacy color codes (`&a`, `&b`, ...)
 - Fully configurable rewards: money, keys, gems (via console commands)
 - Configurable sounds, GUI layout, materials, and messages
@@ -33,6 +34,36 @@ A lightweight Spigot/Paper Minecraft plugin that gives players a configurable da
 ## Configuration
 
 The default `config.yml` is generated on first run. Key sections:
+
+### Database
+
+Reward claim times are persisted across server restarts.
+
+**SQLite** (default — no extra setup required):
+```yaml
+database:
+  type: sqlite
+```
+
+The database file is created automatically at `plugins/DailyReward/rewards.db`.
+
+**MySQL:**
+```yaml
+database:
+  type: mysql
+  mysql:
+    host: localhost
+    port: 3306
+    database: dailyreward
+    username: root
+    password: "yourpassword"
+    use_ssl: false
+```
+
+Create the database on your MySQL server before starting the plugin:
+```sql
+CREATE DATABASE IF NOT EXISTS dailyreward;
+```
 
 ### Cooldown
 
@@ -115,8 +146,8 @@ The shaded JAR will be output to `target/DailyReward-1.0.jar`.
 
 ## Notes
 
-- Reward times are stored **in memory only** and reset on server restart. Players can claim again after a restart.
 - All invalid material or sound names in the config will produce a warning in the console and fall back to safe defaults.
+- Reward times are cached in memory on startup and written to the database on each claim, so they survive server restarts.
 
 ## License
 

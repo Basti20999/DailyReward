@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
+import java.sql.SQLException;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class RewardListener implements Listener {
@@ -57,6 +58,11 @@ public class RewardListener implements Listener {
                 p.getName(), String.valueOf(gems), keyType);
 
         plugin.getRewardTimes().put(p.getUniqueId(), now);
+        try {
+            plugin.getDatabase().save(p.getUniqueId(), now);
+        } catch (SQLException e) {
+            plugin.getLogger().warning("Failed to save reward for " + p.getName() + ": " + e.getMessage());
+        }
 
         p.sendMessage(ColorUtil.translate(plugin.getConfig().getString(
                 "messages.success", "&aDaily reward claimed!")));

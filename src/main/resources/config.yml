@@ -3,6 +3,20 @@
 #   Supports: hex colors (#RRGGBB) and legacy color codes (&a, &b, ...)
 # =============================================
 
+# ---- Database ----
+# type: "sqlite" (default) or "mysql"
+# SQLite requires no extra setup — the database file is created automatically
+# in the plugin's data folder (plugins/DailyReward/rewards.db).
+database:
+  type: sqlite
+  mysql:
+    host: localhost
+    port: 3306
+    database: dailyreward
+    username: root
+    password: ""
+    use_ssl: false
+
 # Cooldown in hours before a player can claim again
 cooldown_hours: 24
 
