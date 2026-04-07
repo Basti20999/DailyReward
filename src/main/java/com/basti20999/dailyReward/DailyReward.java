@@ -13,15 +13,15 @@ public class DailyReward extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        saveDefaultConfig(); // Config wird automatisch erstellt, falls nicht vorhanden
+        saveDefaultConfig();
         getCommand("daily").setExecutor(new RewardCommand(this));
         getServer().getPluginManager().registerEvents(new RewardListener(this), this);
-        getLogger().info("DailyReward Plugin aktiviert!");
+        getLogger().info("DailyReward enabled.");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("DailyReward Plugin deaktiviert!");
+        getLogger().info("DailyReward disabled.");
     }
 
     public static DailyReward getInstance() {

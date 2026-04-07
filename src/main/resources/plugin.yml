@@ -5,5 +5,5 @@ api-version: 1.21
 author: Basti20999
 commands:
   daily:
-    description: Öffnet die tägliche Belohnung
-    aliases: [belohnung]
+    description: Opens the daily reward GUI
+    aliases: [reward]
