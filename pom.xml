@@ -41,12 +41,12 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <!-- Relocate shaded libraries to avoid conflicts with other plugins -->
                     <relocations>
-                        <relocation>
-                            <pattern>org.sqlite</pattern>
-                            <shadedPattern>com.basti20999.dailyreward.libs.sqlite</shadedPattern>
-                        </relocation>
+                        <!--
+                          SQLite JDBC is NOT relocated: its native library extraction
+                          relies on the original org.sqlite resource paths inside the JAR.
+                          Relocating the package breaks System.loadLibrary at runtime.
+                        -->
                         <relocation>
                             <pattern>com.mysql</pattern>
                             <shadedPattern>com.basti20999.dailyreward.libs.mysql</shadedPattern>
