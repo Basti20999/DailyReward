@@ -1,9 +1,34 @@
 name: DailyReward
-main: com.basti20999.dailyReward.DailyReward
-version: 1.0
+main: com.basti20999.dailyreward.DailyReward
+version: 2.0
 api-version: 1.21
 author: Basti20999
+softdepend: [PlaceholderAPI]
+
 commands:
   daily:
-    description: Opens the daily reward GUI
-    aliases: [reward]
+    description: Opens the daily reward GUI; use subcommands for stats/top/admin.
+    usage: /daily [stats|top|reset|give|reload|help]
+    aliases: [reward, dr]
+
+permissions:
+  dailyreward.admin:
+    description: Grants all DailyReward admin permissions.
+    default: op
+    children:
+      dailyreward.admin.reset: true
+      dailyreward.admin.give: true
+      dailyreward.admin.reload: true
+      dailyreward.admin.stats: true
+  dailyreward.admin.reset:
+    description: Reset another player's cooldown and streak.
+    default: op
+  dailyreward.admin.give:
+    description: Force-give a reward to a player.
+    default: op
+  dailyreward.admin.reload:
+    description: Reload the DailyReward configuration.
+    default: op
+  dailyreward.admin.stats:
+    description: View another player's claim statistics.
+    default: op
