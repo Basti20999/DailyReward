@@ -2,10 +2,9 @@ package com.basti20999.dailyreward.gui;
 
 import com.basti20999.dailyreward.DailyReward;
 import com.basti20999.dailyreward.PlayerData;
-import org.bukkit.Bukkit;
+import com.basti20999.dailyreward.util.SchedulerUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Map;
 import java.util.UUID;
@@ -14,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class GuiRefresher {
 
     private final DailyReward plugin;
-    private final Map<UUID, BukkitTask> tasks = new ConcurrentHashMap<>();
+    private final Map<UUID, SchedulerUtil.CancelableTask> tasks = new ConcurrentHashMap<>();
 
     public GuiRefresher(DailyReward plugin) {
         this.plugin = plugin;
@@ -22,7 +21,7 @@ public final class GuiRefresher {
 
     public void start(Player player, Inventory inventory) {
         stop(player.getUniqueId());
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+        SchedulerUtil.CancelableTask task = SchedulerUtil.repeatForPlayer(plugin, player, () -> {
             if (!player.isOnline()) {
                 stop(player.getUniqueId());
                 return;
@@ -39,12 +38,12 @@ public final class GuiRefresher {
     }
 
     public void stop(UUID uuid) {
-        BukkitTask task = tasks.remove(uuid);
+        SchedulerUtil.CancelableTask task = tasks.remove(uuid);
         if (task != null) task.cancel();
     }
 
     public void stopAll() {
-        for (BukkitTask task : tasks.values()) task.cancel();
+        for (SchedulerUtil.CancelableTask task : tasks.values()) task.cancel();
         tasks.clear();
     }
 }

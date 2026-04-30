@@ -1,6 +1,6 @@
 name: DailyReward
 main: com.basti20999.dailyreward.DailyReward
-version: 2.0
+version: 2.1
 api-version: 1.21
 author: Basti20999
 softdepend: [PlaceholderAPI]

@@ -6,6 +6,7 @@ import com.basti20999.dailyreward.PlayerData;
 import com.basti20999.dailyreward.config.PluginConfig;
 import com.basti20999.dailyreward.gui.GuiBuilder;
 import com.basti20999.dailyreward.util.CooldownUtil;
+import com.basti20999.dailyreward.util.SchedulerUtil;
 import com.basti20999.dailyreward.util.SoundUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -155,7 +156,7 @@ public final class DailyCommand implements CommandExecutor {
     private void handleTop(CommandSender sender) {
         PluginConfig cfg = plugin.cfg();
         sendMessage(sender, cfg.msgTopHeader);
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.async(plugin, () -> {
             Map<UUID, PlayerData> top;
             try {
                 top = plugin.getDatabase().topStreaks(10);
@@ -164,10 +165,10 @@ public final class DailyCommand implements CommandExecutor {
                 return;
             }
             if (top.isEmpty()) {
-                Bukkit.getScheduler().runTask(plugin, () -> sendMessage(sender, cfg.msgNoData));
+                SchedulerUtil.sync(plugin, () -> sendMessage(sender, cfg.msgNoData));
                 return;
             }
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            SchedulerUtil.sync(plugin, () -> {
                 int rank = 1;
                 for (var entry : top.entrySet()) {
                     OfflinePlayer op = Bukkit.getOfflinePlayer(entry.getKey());

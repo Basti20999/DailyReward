@@ -3,8 +3,8 @@ package com.basti20999.dailyreward;
 import com.basti20999.dailyreward.config.PluginConfig;
 import com.basti20999.dailyreward.reward.RewardCalculator;
 import com.basti20999.dailyreward.reward.RewardResult;
+import com.basti20999.dailyreward.util.SchedulerUtil;
 import com.basti20999.dailyreward.util.SoundUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
@@ -62,7 +62,7 @@ public final class RewardService {
 
         UUID uuid = player.getUniqueId();
         PlayerData snapshot = new PlayerData(data.lastClaimed(), data.streak(), data.totalClaims());
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.async(plugin, () -> {
             try {
                 plugin.getDatabase().save(uuid, snapshot);
             } catch (SQLException e) {
@@ -87,7 +87,7 @@ public final class RewardService {
                 .replace("{player}", player)
                 .replace("{amount}", amount)
                 .replace("{type}", type);
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+        SchedulerUtil.dispatchConsoleCommand(plugin, cmd);
     }
 
     public void resetPlayer(UUID uuid) {
@@ -96,7 +96,7 @@ public final class RewardService {
             data.setLastClaimed(0L);
             data.setStreak(0);
         }
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.async(plugin, () -> {
             try {
                 plugin.getDatabase().delete(uuid);
             } catch (SQLException e) {

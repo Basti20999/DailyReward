@@ -2,13 +2,18 @@ package com.basti20999.dailyreward;
 
 import com.basti20999.dailyreward.config.PluginConfig;
 import com.basti20999.dailyreward.gui.DailyRewardHolder;
+import com.basti20999.dailyreward.util.SchedulerUtil;
 import com.basti20999.dailyreward.util.SoundUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import java.sql.SQLException;
+import java.util.UUID;
 
 public final class RewardListener implements Listener {
 
@@ -16,6 +21,32 @@ public final class RewardListener implements Listener {
 
     public RewardListener(DailyReward plugin) {
         this.plugin = plugin;
+    }
+
+    /**
+     * Refresh player data from the database on join.
+     * This ensures that claims made on another server (multi-server MySQL setup)
+     * are visible immediately on this server.
+     */
+    @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+        UUID uuid = e.getPlayer().getUniqueId();
+        SchedulerUtil.async(plugin, () -> {
+            try {
+                PlayerData fresh = plugin.getDatabase().loadPlayer(uuid);
+                if (fresh == null) return;
+                PlayerData existing = plugin.getPlayerDataOrNull(uuid);
+                if (existing != null) {
+                    existing.setLastClaimed(fresh.lastClaimed());
+                    existing.setStreak(fresh.streak());
+                    existing.setTotalClaims(fresh.totalClaims());
+                } else {
+                    plugin.getAllPlayerData().put(uuid, fresh);
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().warning("Failed to refresh data for " + uuid + ": " + ex.getMessage());
+            }
+        });
     }
 
     @EventHandler
