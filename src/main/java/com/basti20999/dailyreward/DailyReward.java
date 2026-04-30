@@ -56,7 +56,8 @@ public final class DailyReward extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RewardListener(this), this);
 
         registerPlaceholders();
-        getLogger().info("DailyReward v" + getDescription().getVersion() + " enabled.");
+        getLogger().info("DailyReward v" + getDescription().getVersion()
+                + " enabled (Folia=" + com.basti20999.dailyreward.util.SchedulerUtil.isFolia() + ").");
     }
 
     @Override

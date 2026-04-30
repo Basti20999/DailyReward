@@ -115,6 +115,22 @@ public class DatabaseManager {
         return false;
     }
 
+    public PlayerData loadPlayer(UUID uuid) throws SQLException {
+        String sql = "SELECT last_claimed, streak, total_claims FROM daily_rewards WHERE uuid = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, uuid.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new PlayerData(
+                            rs.getLong("last_claimed"),
+                            rs.getInt("streak"),
+                            rs.getInt("total_claims"));
+                }
+            }
+        }
+        return null;
+    }
+
     public Map<UUID, PlayerData> loadAll() throws SQLException {
         Map<UUID, PlayerData> map = new HashMap<>();
         try (Statement stmt = connection.createStatement();
